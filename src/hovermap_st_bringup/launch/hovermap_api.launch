@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Keep the /cortex namespace: it is part of Emesent's wire protocol. -->
+  <arg name="ip_prefix" default="10.9.0.0" />
+  <arg name="ip_netmask" default="255.255.255.0" />
+  <arg name="relay_standard_tf" default="true" />
+
+  <node pkg="mule_bridge" name="mule_bridge" type="mule_bridge"
+        required="true" output="screen" ns="cortex">
+    <rosparam command="load" file="$(find hovermap_api)/config/mule.yaml" />
+    <param name="ip_prefix" value="$(arg ip_prefix)" />
+    <param name="ip_netmask" value="$(arg ip_netmask)" />
+  </node>
+
+  <node pkg="hovermap_api" name="http_interface_node" type="http_interface_node"
+        required="true" output="screen" ns="cortex">
+    <rosparam command="load" file="$(find hovermap_api)/config/mule.yaml" />
+    <param name="ip_prefix" value="$(arg ip_prefix)" />
+    <param name="ip_netmask" value="$(arg ip_netmask)" />
+  </node>
+
+  <node if="$(arg relay_standard_tf)" pkg="hovermap_st_bringup"
+        name="tf_relay" type="tf_relay" required="true" output="screen" />
+</launch>

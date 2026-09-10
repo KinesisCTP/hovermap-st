@@ -1,0 +1,24 @@
+build/
+devel/
+install/
+log/
+.catkin_tools/
+.colcon/
+.cache/
+.env
+# Imported dependency worktrees are recreated from the .repos manifests.
+src/*
+!src/hovermap_st_bringup/
+!src/hovermap_st_bringup/**
+
+# Keep generated Python artifacts ignored after re-including the bringup tree.
+*.pyc
+__pycache__/
+
+# Device-bound entitlements and downloaded mission data never belong in Git.
+*.img
+features-*
+downloads/
+*.zip
+*.bag
+*.db

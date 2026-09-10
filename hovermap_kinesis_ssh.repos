@@ -1,0 +1,5 @@
+repositories:
+  hovermap_ros_api:
+    type: git
+    url: git@github.com:KinesisCTP/hovermap_ros_api.git
+    version: main
