@@ -5,8 +5,8 @@
     ip_prefix: 10.9.0.0
     ip_netmask: 255.255.255.0
     ping_mcast_group: 225.0.0.250
-    # Omitted means an explicitly typed empty string array. Non-empty unicast
-    # addresses are additive; set ping_mcast_group to "" for unicast-only mode.
+    # Omitted means no unicast addresses. Non-empty unicast addresses are
+    # additive; set ping_mcast_group to "" for unicast-only mode.
     ping_port: 8123
     min_port: 49172
     max_port: 49192

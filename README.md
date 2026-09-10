@@ -57,8 +57,9 @@ source /opt/ros/jazzy/setup.bash
 vcs import . < hovermap_ros2_core_https.repos
 sudo apt-get update
 sudo apt-get install -y python3-avro
+rosdep update --rosdistro jazzy
 rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
-  --ignore-src -r -y
+  --ignore-src --rosdistro jazzy -y
 colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
   --symlink-install
 source install/setup.bash

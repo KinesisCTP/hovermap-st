@@ -18,10 +18,8 @@ from builtin_interfaces.msg import Time as TimeMessage
 from nav_msgs.msg import Odometry
 import rclpy
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.exceptions import ParameterUninitializedException
 from rclpy.executors import ExternalShutdownException, MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.parameter import Parameter
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import String
@@ -68,6 +66,11 @@ from .static_tf import StaticTransformCache
 
 def _event_payload_size(event) -> int:
     return len(event[3]) if event[0] == "wire_message" else 0
+
+
+def _normalized_unicast_addresses(values) -> tuple:
+    """Map the Jazzy string-array sentinel to no unicast addresses."""
+    return tuple(value for value in values if value)
 
 
 @dataclass
@@ -286,7 +289,10 @@ class MuleAdapter(Node):
         self.declare_parameter("ip_prefix", defaults.ip_prefix)
         self.declare_parameter("ip_netmask", defaults.ip_netmask)
         self.declare_parameter("ping_mcast_group", defaults.ping_mcast_group)
-        self.declare_parameter("ping_ucast_addrs", Parameter.Type.STRING_ARRAY)
+        # Jazzy infers [] as a byte array even when a string-array type is
+        # requested. A one-element empty-string default fixes the static type;
+        # _read_settings normalizes the sentinel back to an empty tuple.
+        self.declare_parameter("ping_ucast_addrs", [""])
         self.declare_parameter("ping_port", defaults.ping_port)
         self.declare_parameter("min_port", defaults.min_port)
         self.declare_parameter("max_port", defaults.max_port)
@@ -316,12 +322,9 @@ class MuleAdapter(Node):
         )
 
     def _read_settings(self) -> MuleSettings:
-        try:
-            ping_ucast_addrs = tuple(
-                self.get_parameter("ping_ucast_addrs").value
-            )
-        except ParameterUninitializedException:
-            ping_ucast_addrs = ()
+        ping_ucast_addrs = _normalized_unicast_addresses(
+            self.get_parameter("ping_ucast_addrs").value
+        )
         settings = MuleSettings(
             swarm_name=self.get_parameter("swarm_name").value,
             node_name=self.get_parameter("node_name").value,

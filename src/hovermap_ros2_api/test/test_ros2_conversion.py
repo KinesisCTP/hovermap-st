@@ -37,25 +37,36 @@ from hovermap_ros2_api.ros1_wire import (
 @unittest.skipUnless(ROS_MESSAGES_AVAILABLE, "ROS 2 message packages are not installed")
 class Ros2ConversionTests(unittest.TestCase):
     def test_explicit_string_array_parameter_accepts_empty_and_nonempty(self):
-        for value in ([], ["10.9.0.2"]):
-            with self.subTest(value=value):
+        from hovermap_ros2_api.mule_adapter import _normalized_unicast_addresses
+
+        for override, expected in (
+            (None, ()),
+            (["10.9.0.2"], ("10.9.0.2",)),
+        ):
+            with self.subTest(override=override):
                 context = Context()
                 rclpy.init(context=context)
-                override = Parameter(
-                    "ping_ucast_addrs", Parameter.Type.STRING_ARRAY, value
-                )
+                parameter_overrides = []
+                if override is not None:
+                    parameter_overrides.append(
+                        Parameter(
+                            "ping_ucast_addrs",
+                            Parameter.Type.STRING_ARRAY,
+                            override,
+                        )
+                    )
                 node = Node(
                     "string_array_test",
                     context=context,
-                    parameter_overrides=[override],
+                    parameter_overrides=parameter_overrides,
                 )
                 try:
-                    node.declare_parameter(
-                        "ping_ucast_addrs", Parameter.Type.STRING_ARRAY
-                    )
+                    node.declare_parameter("ping_ucast_addrs", [""])
                     self.assertEqual(
-                        list(node.get_parameter("ping_ucast_addrs").value),
-                        value,
+                        _normalized_unicast_addresses(
+                            node.get_parameter("ping_ucast_addrs").value
+                        ),
+                        expected,
                     )
                 finally:
                     node.destroy_node()

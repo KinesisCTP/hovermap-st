@@ -105,8 +105,9 @@ Run these commands from the repository root:
 source /opt/ros/jazzy/setup.bash
 sudo apt-get update
 sudo apt-get install -y python3-avro
+rosdep update --rosdistro jazzy
 rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
-  --ignore-src -r -y
+  --ignore-src --rosdistro jazzy -y
 colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
   --symlink-install
 source install/setup.bash
@@ -127,7 +128,9 @@ UDP 8123 and the TCP range to the isolated Hovermap interface/subnet; do not
 treat `ip_prefix` as an exposure boundary.
 Unicast discovery addresses are additive by default. For a unicast-only
 deployment, set `ping_mcast_group` to an empty string and provide a non-empty
-typed string array in `ping_ucast_addrs`.
+typed string array in `ping_ucast_addrs`. Omit `ping_ucast_addrs` when no
+unicast address is required; ROS 2 Jazzy cannot represent an empty array's
+element type in a parameter override.
 
 Native launches download to the user-writable `~/hovermap_downloads` by
 default. Container deployments may explicitly override

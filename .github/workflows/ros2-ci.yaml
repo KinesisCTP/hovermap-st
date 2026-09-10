@@ -34,10 +34,11 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y \
             python3-avro \
             ros-dev-tools
-          rosdep update
+          python3 -c 'import avro, avro.errors'
+          rosdep update --rosdistro jazzy
           rosdep install --from-paths \
             src/hovermap_ros2_msgs src/hovermap_ros2_api \
-            --ignore-src -r -y
+            --ignore-src --rosdistro jazzy -y
       - name: Import pinned Mule core
         shell: bash
         run: vcs import . < hovermap_ros2_core_https.repos
