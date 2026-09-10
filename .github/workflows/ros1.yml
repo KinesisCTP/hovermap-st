@@ -13,7 +13,7 @@ jobs:
   repository-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install static-analysis tools
         run: |
@@ -43,7 +43,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install workspace tools
         run: |
