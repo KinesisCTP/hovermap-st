@@ -3,7 +3,7 @@
 This private repository is the onboarding workspace for Kinesis CTP users
 working with the Emesent Hovermap ST. The default branch provides a
 reproducible ROS 1 Noetic baseline; native ROS 2 Jazzy development is isolated
-on the `ros2-jazzy` branch until it reaches hardware parity.
+on the `codex/ros2-jazzy` branch until it reaches hardware parity.
 
 It provides:
 
