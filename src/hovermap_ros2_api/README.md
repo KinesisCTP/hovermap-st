@@ -129,8 +129,10 @@ treat `ip_prefix` as an exposure boundary.
 Unicast discovery addresses are additive by default. For a unicast-only
 deployment, set `ping_mcast_group` to an empty string and provide a non-empty
 typed string array in `ping_ucast_addrs`. Omit `ping_ucast_addrs` when no
-unicast address is required; ROS 2 Jazzy cannot represent an empty array's
-element type in a parameter override.
+unicast address is required, or set it to the `[""]` string-array sentinel.
+ROS 2 Jazzy cannot represent an empty array's element type in a parameter
+override. The sentinel is valid only by itself; empty elements mixed with IP
+addresses fail validation.
 
 Native launches download to the user-writable `~/hovermap_downloads` by
 default. Container deployments may explicitly override

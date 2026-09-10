@@ -70,7 +70,8 @@ def _event_payload_size(event) -> int:
 
 def _normalized_unicast_addresses(values) -> tuple:
     """Map the Jazzy string-array sentinel to no unicast addresses."""
-    return tuple(value for value in values if value)
+    addresses = tuple(values)
+    return () if addresses == ("",) else addresses
 
 
 @dataclass

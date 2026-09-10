@@ -75,6 +75,7 @@ class MuleConfigTests(unittest.TestCase):
             MuleSettings(ip_prefix="10.9.0.1"),
             MuleSettings(ping_mcast_group="10.9.0.1"),
             MuleSettings(ping_ucast_addrs=("225.0.0.250",)),
+            MuleSettings(ping_ucast_addrs=("", "10.9.0.2")),
             MuleSettings(min_port=50000, max_port=40000),
             MuleSettings(min_port=50000, max_port=50000),
             MuleSettings(compression_level=10),
