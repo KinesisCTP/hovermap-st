@@ -1,0 +1,46 @@
+/cortex/mule_adapter:
+  ros__parameters:
+    swarm_name: hvm
+    node_name: hvm_ros2_client
+    ip_prefix: 10.9.0.0
+    ip_netmask: 255.255.255.0
+    ping_mcast_group: 225.0.0.250
+    # Omitted means an explicitly typed empty string array. Non-empty unicast
+    # addresses are additive; set ping_mcast_group to "" for unicast-only mode.
+    ping_port: 8123
+    min_port: 49172
+    max_port: 49192
+    initial_wait: 5.0
+    status_period: 1.0
+    compression_level: -1
+    event_queue_depth: 512
+    event_queue_bytes: 268435456
+    drain_max_events: 32
+    drain_time_budget_ms: 5.0
+    configuration_retry_limit: 3
+    configuration_retry_delay: 1.0
+    shutdown_on_transport_error: true
+    sensor_reliability: best_effort
+    lidar_topic: /cortex/lidar/corrected
+    occupancy_topic: /cortex/occupancy_grid_map/data
+    odometry_topic: /cortex/odometry
+    tf_topic: /cortex/tf
+    tf_static_topic: /cortex/tf_static
+    publish_standard_tf: true
+    standard_tf_topic: /tf
+    standard_tf_static_topic: /tf_static
+    configuration_topic: /cortex/occupancy_grid_map/configuration
+    bridge_status_topic: /cortex/mule_bridge/status
+    set_overlay_service: /cortex/mule_bridge/set_overlay
+
+/cortex/http_interface:
+  ros__parameters:
+    hovermap_address: ""
+    ip_prefix: 10.9.0.0
+    download_directory: ~/hovermap_downloads
+    request_timeout: 5.0
+    download_timeout: 450.0
+    status_poll_interval: 1.0
+    http_workers: 3
+    max_pending_requests: 16
+    max_pending_controls: 8

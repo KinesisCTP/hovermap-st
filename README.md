@@ -1,73 +1,84 @@
-# Kinesis Hovermap ST Workspace
+# Kinesis Hovermap ST — ROS 2 Jazzy
 
-This private repository is the onboarding workspace for Kinesis CTP users
-working with the Emesent Hovermap ST. The default branch provides a
-reproducible ROS 1 Noetic baseline; native ROS 2 Jazzy development is isolated
-on the `codex/ros2-jazzy` branch until it reaches hardware parity.
+This private `codex/ros2-jazzy` branch is the KINESIS native ROS 2 prototype
+for the Emesent Hovermap ST on Ubuntu 24.04 / ROS 2 Jazzy. It provides:
 
-It provides:
+- `hovermap_ros2_msgs`, with ROS 2 Hovermap status, scan, Mule diagnostic, and
+  overlay-service interfaces;
+- `hovermap_ros2_api`, with hardened HTTP control/download behavior and a
+  native `rclpy` adapter around the separately imported Mule transport core;
+- explicit, tested ROS 1 wire codecs for `PointCloud2`, `Odometry`,
+  `TFMessage`, and `String`;
+- original `/cortex/*` compatibility topics plus enabled-by-default `/tf` and
+  `/tf_static` output for tf2 and RViz2; and
+- offline codec, HTTP, queue, ordering, and configuration tests plus a Jazzy
+  build and real-core compatibility smoke in CI.
 
-- HTTPS and SSH `.repos` manifests for the Kinesis tracking fork of Emesent's
-  ROS API (the HTTPS onboarding manifest is pinned to the audited commit);
-- a containerized ROS 1 Noetic environment for current Ubuntu hosts;
-- Kinesis bringup with explicit network-profile arguments;
-- conventional `/tf` and latched `/tf_static` relays;
-- read-only network and topic verification scripts; and
-- an evidence-backed source audit and hardware acceptance checklist.
+This is an engineering prototype, not a claim of hardware parity. Physical
+Hovermap acceptance remains mandatory before operational use.
 
-The device-bound feature file, credentials, vendor media, and downloaded scans
-are deliberately excluded from Git.
+## Source and license boundary
+
+No Emesent or CSIRO source is copied into the ROS 2 packages. The public
+KINESIS tracking fork is imported at the audited commit
+`1608fb74784977b69936590b9cda8340a1fe3013`; only its ROS-agnostic
+`mule_bridge` package is added to `PYTHONPATH` at runtime.
+
+The new KINESIS packages are marked `Proprietary` for private/internal
+evaluation. Do not publish them until KINESIS selects an explicit license and
+the conflicting upstream license metadata is resolved. See
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Repository layout
 
 ```text
 .
-├── containers/ros1_noetic/       # containerized Noetic environment
-├── docs/device-activation.md      # entitlement and API activation runbook
-├── docs/ros1-audit.md             # source, interface, risk, and test audit
-├── hovermap_kinesis_https.repos   # simple/read-only dependency import
-├── hovermap_kinesis_ssh.repos     # Kinesis contributor import
-├── scripts/                       # bootstrap and non-mutating checks
-└── src/hovermap_st_bringup/       # Kinesis launch and TF relay package
+├── src/hovermap_ros2_msgs/       # KINESIS ROS 2 interfaces
+├── src/hovermap_ros2_api/        # HTTP node, Mule adapter, codecs, tests
+├── third_party/COLCON_IGNORE     # prevents imported ROS 1 package discovery
+├── hovermap_ros2_core_https.repos
+├── scripts/source_mule_core.sh
+├── tools/smoke_mule_core.py
+├── docs/                         # activation and audited ROS 1 reference
+└── containers/ros1_noetic/       # retained baseline/reference, not ROS 2 src
 ```
 
-The implementation remains in the separate public tracking fork:
+The former ROS 1 catkin bringup package is deliberately absent on this branch
+so `rosdep` and `colcon` see only the two native ROS 2 packages. The container,
+audit, activation, and verification files remain as parity evidence and a
+reference for the `main` ROS 1 baseline.
 
-- `KinesisCTP/hovermap_ros_api`
-- upstream `Emesent/hovermap_ros_api`
+## Build and launch
 
-The reproducible HTTPS onboarding baseline is commit
-`1608fb74784977b69936590b9cda8340a1fe3013`; at audit time the Kinesis fork was
-identical to Emesent `main`.
+Run from the repository root on Ubuntu 24.04 with ROS 2 Jazzy:
 
-## Activation boundary
+```bash
+source /opt/ros/jazzy/setup.bash
+vcs import . < hovermap_ros2_core_https.repos
+rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
+  --ignore-src -r -y
+colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
+  --symlink-install
+source install/setup.bash
+source scripts/source_mule_core.sh
+ros2 launch hovermap_ros2_api hovermap_api.launch.py \
+  ip_prefix:=10.9.0.0 hovermap_address:=10.9.0.1
+```
 
-API use requires all of the following:
+Native downloads default to the user-writable `~/hovermap_downloads`. Both
+adapters are required by default: if either exits, the other node and launch
+shut down instead of leaving a degraded partial API running.
 
-- an API-enabled Hovermap with Cortex `4.0.2` or newer;
-- the device-specific feature entitlement installed successfully;
-- **Publish external API messages** enabled in the Hovermap Web UI; and
-- a Linux host connected through Wi-Fi, USB Ethernet, or the ST
-  Fischer-to-Ethernet interface.
+Full topic, parameter, QoS, security, perception-configuration, test, and
+hardware-acceptance details are in
+[`src/hovermap_ros2_api/README.md`](src/hovermap_ros2_api/README.md).
 
-MENA3D supplied Kinesis with an Emesent feature image and the
-[Hovermap feature-upgrade guide](https://knowledge.emesent.com/docs/hovermap-feature-upgrade).
-The file is intentionally not in this repository. The current guide names
-Hovermap ST-X as its prerequisite even though the supplied entitlement targets
-the Kinesis Hovermap ST; confirm the Web UI recognizes the package and allow
-its built-in integrity check to complete before selecting **Install**. Do not
-rename, edit, publish, or commit the file.
+## Device and network gate
 
-The feature upgrade is a physical-device operation. A successful GitHub build
-does not prove entitlement installation or API activation.
-
-Follow [`docs/device-activation.md`](docs/device-activation.md) for the exact
-install sequence, stop conditions, transport selection, and post-install
-checks.
-
-## Network profiles
-
-Configure exactly one Hovermap-facing host interface with the client address:
+API use requires the device-specific entitlement, **Publish external API
+messages** enabled in the Web UI, and an isolated Hovermap-facing host
+interface. Follow [`docs/device-activation.md`](docs/device-activation.md)
+before testing.
 
 | Connection | Prefix | Hovermap | Client | Netmask |
 |---|---|---|---|---|
@@ -75,171 +86,24 @@ Configure exactly one Hovermap-facing host interface with the client address:
 | ST Fischer Ethernet | `192.168.2.0` | `192.168.2.115` | `192.168.2.100` | `255.255.255.0` |
 | USB Ethernet | `192.168.3.0` | `192.168.3.115` | `192.168.3.100` | `255.255.255.0` |
 
-The vendor YAML's `mule_network` value is currently ignored by the code. Mule
-chooses the first IPv4 interface matching `ip_prefix`, so avoid configuring
-the same Hovermap subnet on multiple host interfaces.
+Mule uses UDP 8123 and TCP ports 49172–49191 (`max_port=49192` is exclusive).
+The upstream Beacon receive socket binds UDP 8123 on all host interfaces even
+though `ip_prefix` selects the ZMQ/outbound interface. Scope both UDP and TCP
+with the host firewall to the isolated Hovermap interface/subnet. The HTTP and
+Mule protocols are unauthenticated; never expose them to an untrusted network.
 
-The API transport is selected on the Hovermap at boot. Keep **Use Wi-Fi for
-external API** enabled for Wi-Fi. Disable it for Fischer or USB Ethernet, then
-power-cycle the Hovermap before testing that connection.
+## Current validation boundary
 
-Before launching, run a read-only preflight on the Linux host:
+Offline tests validate wire-format round trips and malformed buffers, HTTP
+response/redirect/download safety, concurrency bounds, FIFO device-control
+ordering, newest-only configuration buffering, static-TF aggregation, and
+configuration parsing. Jazzy CI also
+builds the interfaces and nodes and constructs the real pinned Mule Client on
+loopback.
 
-```bash
-./scripts/preflight_network.sh wifi wlan0
-# or: ./scripts/preflight_network.sh fischer enp4s0
-# or: ./scripts/preflight_network.sh usb enx001122334455
-```
-
-The Mule path uses UDP `8123`, multicast `225.0.0.250`, and dynamically selected
-TCP ports `49172-49191`. The configured upper bound, `49192`, is exclusive.
-The HTTP API is unencrypted and unauthenticated; use
-only an isolated, trusted Hovermap network.
-
-## Quick start
-
-Install Docker Engine on a Linux workstation and verify it is usable without
-`sudo`, then clone this repository:
-
-```bash
-git clone https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ws
-cd ~/hovermap-st_ws
-./containers/ros1_noetic/run.sh
-```
-
-Inside the container, import dependencies and build:
-
-```bash
-./scripts/bootstrap_ros1.sh
-source devel/setup.bash
-```
-
-The container image bakes in the vendor's pinned Python requirements because
-its nonstandard package metadata is invisible to `rosdep`. Re-run
-`./containers/ros1_noetic/build.sh` after changing the mirrored requirements.
-
-## Start the API client
-
-Use the matching prefix. Wi-Fi is the default:
-
-```bash
-roslaunch hovermap_st_bringup hovermap_api.launch \
-  ip_prefix:=10.9.0.0 ip_netmask:=255.255.255.0
-```
-
-For the ST Fischer interface:
-
-```bash
-roslaunch hovermap_st_bringup hovermap_api.launch \
-  ip_prefix:=192.168.2.0 ip_netmask:=255.255.255.0
-```
-
-For USB Ethernet:
-
-```bash
-roslaunch hovermap_st_bringup hovermap_api.launch \
-  ip_prefix:=192.168.3.0 ip_netmask:=255.255.255.0
-```
-
-Expected logs include discovery of a peer named for the Hovermap serial and a
-successful ZeroMQ connection. The Kinesis launch also relays namespaced
-transforms to standard `/tf` and latched `/tf_static`. Set
-`relay_standard_tf:=false` only if another relay owns those topics.
-
-## Read-only smoke test
-
-Start a Mapping mission from Commander or the Web UI, then run:
-
-```bash
-./scripts/verify_ros1_api.sh
-rostopic hz /cortex/lidar/corrected
-rostopic hz /cortex/occupancy_grid_map/data
-rostopic hz /cortex/odometry
-rviz
-```
-
-Nominal rates are approximately 20 Hz for corrected LiDAR, 1 Hz for the local
-occupancy grid, 100 Hz for odometry, and 1 Hz for Hovermap status. Inspect the
-actual point fields, frame IDs, transform tree, and clock offset before using
-the data for navigation or measurement.
-
-Synchronize the **host** clock to the Hovermap's NTP server. Do not assume that
-running Chrony in the unprivileged development container can adjust host time.
-
-## Device-control topics
-
-These commands change device or mission state. Run them only after the
-read-only baseline is healthy and the operator is ready:
-
-```bash
-# Set an alphanumeric prefix of at most 20 characters.
-rostopic pub -1 /cortex/set_scan_prefix std_msgs/String "data: 'Kinesis'"
-
-# Start and stop a Mapping scan.
-rostopic pub -1 /cortex/start_scan std_msgs/Empty '{}'
-rostopic pub -1 /cortex/stop_scan std_msgs/Empty '{}'
-
-# List stored scans.
-rostopic pub -1 /cortex/scan_names_request std_msgs/Empty '{}'
-rostopic echo -n 1 /cortex/scan_names_response
-
-# Download one exact returned scan name into ./downloads.
-rostopic pub -1 /cortex/download_scan std_msgs/String "data: 'Kinesis_01'"
-rostopic echo -n 1 /cortex/scan_download_successful
-```
-
-Do not run the vendor `configure_perception` helper during onboarding. Its YAML
-changes persistent device state, has no acknowledgement, and differs from the
-README's stated defaults.
-
-## Contributor setup
-
-On a Linux host with `vcstool` and an authenticated GitHub SSH connection,
-Kinesis contributors can import through SSH:
-
-```bash
-vcs import src < hovermap_kinesis_ssh.repos
-./scripts/use_ssh_remotes.sh
-```
-
-For the container path, first use the pinned HTTPS bootstrap. Then run
-`./scripts/use_ssh_remotes.sh` on the host; it refuses dirty/divergent source,
-fetches `origin/main`, and leaves the source on a local `main` branch. SSH
-credentials are deliberately not mounted into the development container.
-
-Recommended imported-repository remotes:
-
-```text
-origin   -> git@github.com:KinesisCTP/hovermap_ros_api.git
-upstream -> git@github.com:Emesent/hovermap_ros_api.git
-```
-
-Keep vendor changes in the tracking fork and device-specific onboarding in
-this repository. Never commit feature entitlements, scans, local `.env` files,
-or network credentials.
-
-The ROS 1 bootstrap is intentionally container-only. The upstream HTTP node
-hard-codes `/data/downloads`; `run.sh` supplies a writable bind mount there.
-A native non-root launch requires an equivalent writable path or a future
-tracking-fork change that makes the download directory configurable.
-
-No open-source licence is granted for Kinesis-authored code while this
-repository remains private. Resolve the upstream metadata conflict and select
-an explicit licence before any external publication.
-
-## Validation status
-
-The repository CI checks shell/XML/Python syntax, builds the documented
-container, imports the pinned public fork, builds all catkin packages, and
-runs the vendor's available tests. Real-device acceptance is still required
-for:
-
-- entitlement/API activation and Cortex version;
-- Wi-Fi and intended Ethernet discovery/reconnect;
-- topic names, types, rates, point fields, timestamps, and frame tree;
-- status and stored-scan parsing;
-- prefix, start, stop, list, and one small ZIP-verified download; and
-- perception configuration only under an explicitly approved test.
-
-See [`docs/ros1-audit.md`](docs/ros1-audit.md) for the detailed audit and known
-limitations.
+Real hardware must still validate discovery/reconnect, rates and loss, message
+bytes and timestamps against the ROS 1 oracle, transform topology and late
+static subscribers, every control path, ZIP downloads, overlay behavior,
+perception persistence, rosbag2/Nav2 interoperability, and a sustained soak.
+Perception configuration has no device acknowledgement and is never applied
+automatically.

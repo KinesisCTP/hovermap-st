@@ -8,17 +8,26 @@ log/
 .env
 # Imported dependency worktrees are recreated from the .repos manifests.
 src/*
-!src/hovermap_st_bringup/
-!src/hovermap_st_bringup/**
+!src/hovermap_ros2_api/
+!src/hovermap_ros2_api/**
+!src/hovermap_ros2_msgs/
+!src/hovermap_ros2_msgs/**
+third_party/*
+!third_party/COLCON_IGNORE
 
-# Keep generated Python artifacts ignored after re-including the bringup tree.
+# Keep generated Python and local test artifacts ignored after re-including packages.
 *.pyc
 __pycache__/
+.pytest_cache/
+.test-run/
+.test-tmp/
 
 # Device-bound entitlements and downloaded mission data never belong in Git.
 *.img
 features-*
 downloads/
+hovermap_downloads/
 *.zip
+*.zip.part
 *.bag
 *.db

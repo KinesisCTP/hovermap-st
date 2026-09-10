@@ -1,0 +1,17 @@
+string topic_name
+string type_name
+string type_md5sum
+uint64 volatile_sub_msg_count
+uint64 volatile_sub_raw_size
+uint64 volatile_sub_bridged_size
+uint64 volatile_pub_msg_count
+uint64 volatile_pub_raw_size
+uint64 volatile_pub_bridged_size
+uint64 volatile_pub_drop_count
+uint64 persistent_sub_msg_count
+uint64 persistent_sub_raw_size
+uint64 persistent_sub_bridged_size
+uint64 persistent_pub_msg_count
+uint64 persistent_pub_raw_size
+uint64 persistent_pub_bridged_size
+uint64 persistent_pub_drop_count
