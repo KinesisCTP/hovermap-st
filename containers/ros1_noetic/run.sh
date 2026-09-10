@@ -18,6 +18,14 @@ CONTAINER_NAME="${CONTAINER_NAME:-kinesis_hovermap_st_noetic}"
 CONTAINER_WORKSPACE="${CONTAINER_WORKSPACE:-/home/ros/hovermap-st_ws}"
 DOWNLOAD_DIR="${DOWNLOAD_DIR:-${repo_root}/downloads}"
 
+if [ ! -f "${HOVERMAP_WS}/hovermap_kinesis_https.repos" ] \
+    || [ ! -f "${HOVERMAP_WS}/scripts/bootstrap_ros1.sh" ] \
+    || [ ! -d "${HOVERMAP_WS}/src/hovermap_st_bringup" ]; then
+    echo "HOVERMAP_WS is not a Hovermap ST induction checkout: ${HOVERMAP_WS}" >&2
+    echo "Point HOVERMAP_WS at this repository, not at an empty catkin directory." >&2
+    exit 1
+fi
+
 if ! docker info >/dev/null 2>&1; then
     echo "Docker is not reachable from this shell." >&2
     echo "Install Docker Engine or refresh your docker-group session, then retry." >&2
