@@ -31,7 +31,9 @@ jobs:
         shell: bash
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y ros-dev-tools
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            python3-avro \
+            ros-dev-tools
           rosdep update
           rosdep install --from-paths \
             src/hovermap_ros2_msgs src/hovermap_ros2_api \

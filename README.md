@@ -55,6 +55,8 @@ Run from the repository root on Ubuntu 24.04 with ROS 2 Jazzy:
 ```bash
 source /opt/ros/jazzy/setup.bash
 vcs import . < hovermap_ros2_core_https.repos
+sudo apt-get update
+sudo apt-get install -y python3-avro
 rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
   --ignore-src -r -y
 colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \

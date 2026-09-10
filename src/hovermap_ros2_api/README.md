@@ -81,12 +81,14 @@ PYTHONPATH="src/hovermap_ros2_api:${PYTHONPATH}" \
     --instantiate-client
 ```
 
-Use current Ubuntu packages for Avro, pyzmq, Tornado, and netifaces. Do not
-reintroduce the legacy `tornado==5.1.1` or `netifaces==0.10.9` pins on Noble.
-The separate fork must be tested with those current dependencies. The imported
-core currently creates `mule_<node_name>.db` in its working directory even for
-this read-mostly configuration; that behavior should be corrected in the fork
-before production deployment.
+Use current Ubuntu packages for Avro, pyzmq, Tornado, and netifaces. Ubuntu
+Noble provides Avro as `python3-avro`, but the upstream rosdep database has no
+matching key, so install that package explicitly before running `rosdep`. Do
+not reintroduce the legacy `tornado==5.1.1` or `netifaces==0.10.9` pins on
+Noble. The separate fork must be tested with those current dependencies. The
+imported core currently creates `mule_<node_name>.db` in its working directory
+even for this read-mostly configuration; that behavior should be corrected in
+the fork before production deployment.
 
 The CI real-core smoke verifies the pinned commit, imports the exact checkout,
 builds its real `Config`, and constructs/releases `Client`, IOLoop, ZeroMQ, and
@@ -101,6 +103,8 @@ Run these commands from the repository root:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
+sudo apt-get update
+sudo apt-get install -y python3-avro
 rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
   --ignore-src -r -y
 colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \

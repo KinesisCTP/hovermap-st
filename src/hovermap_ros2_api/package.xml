@@ -20,7 +20,8 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>hovermap_ros2_msgs</exec_depend>
-  <exec_depend>python3-avro</exec_depend>
+  <!-- Avro is an imported Mule-core dependency with no upstream rosdep key.
+       Install Ubuntu's python3-avro package as documented in the README. -->
   <exec_depend>python3-netifaces</exec_depend>
   <exec_depend>python3-tornado</exec_depend>
   <exec_depend>python3-zmq</exec_depend>
