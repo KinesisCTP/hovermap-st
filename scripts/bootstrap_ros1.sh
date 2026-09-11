@@ -4,6 +4,11 @@ set -euo pipefail
 workspace_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${workspace_root}"
 
+# Noetic's setup hooks read ROS_MASTER_URI directly. Define the conventional
+# local master before sourcing them so this script remains compatible with
+# `set -u` in a fresh shell.
+export ROS_MASTER_URI="${ROS_MASTER_URI:-http://localhost:11311}"
+
 # shellcheck disable=SC1091
 source /opt/ros/noetic/setup.bash
 

@@ -2,6 +2,7 @@ build/
 devel/
 install/
 log/
+logs/
 .catkin_tools/
 .colcon/
 .cache/

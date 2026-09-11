@@ -155,7 +155,7 @@ Start a Mapping mission from Commander or the Web UI, then run:
 rostopic hz /cortex/lidar/corrected
 rostopic hz /cortex/occupancy_grid_map/data
 rostopic hz /cortex/odometry
-rviz
+rviz -d "$(rospack find hovermap_st_bringup)/rviz/hovermap.rviz"
 ```
 
 Nominal rates are approximately 20 Hz for corrected LiDAR, 1 Hz for the local
