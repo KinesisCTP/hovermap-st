@@ -5,6 +5,58 @@ working with the Emesent Hovermap ST. The default branch provides a
 reproducible ROS 1 Noetic baseline; native ROS 2 Jazzy development is isolated
 on the `codex/ros2-jazzy` branch until it reaches hardware parity.
 
+## ROS 1 first steps (Wi-Fi)
+
+Before starting, power the Hovermap, enable **Publish external API messages**
+and **Use Wi-Fi for external API**, connect the workstation to its isolated
+Wi-Fi network, and configure that interface as `10.9.0.99/24`. Keep the
+Hovermap securely held or mounted before starting a Mapping mission.
+
+In terminal 1:
+
+```bash
+git clone https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ws
+cd ~/hovermap-st_ws
+./scripts/preflight_network.sh wifi <wifi-interface>
+./containers/ros1_noetic/run.sh
+
+# Inside the container:
+./scripts/bootstrap_ros1.sh
+source devel/setup.bash
+roslaunch hovermap_st_bringup hovermap_api.launch \
+  ip_prefix:=10.9.0.0 ip_netmask:=255.255.255.0
+```
+
+In terminal 2:
+
+```bash
+cd ~/hovermap-st_ws
+./containers/ros1_noetic/enter.sh
+
+# Inside the container:
+source devel/setup.bash
+./scripts/verify_ros1_api.sh
+rviz -d "$(rospack find hovermap_st_bringup)/rviz/hovermap.rviz"
+```
+
+After securing the Hovermap, start and stop a Mapping mission from Commander,
+the Web UI, or the ROS topics below. Always stop the mission before closing
+the node:
+
+```bash
+rostopic pub -1 /cortex/start_scan std_msgs/Empty '{}'
+# Move the secured Hovermap slowly while viewing the live cloud in RViz.
+rostopic pub -1 /cortex/stop_scan std_msgs/Empty '{}'
+```
+
+Expected results are an `st_0200` Mule peer, all `PASS` lines from the
+verification script, corrected LiDAR near 20 Hz, odometry near 100 Hz, and a
+live cloud in RViz. Synchronize the **host** clock to the Hovermap NTP server
+before timestamp-sensitive navigation or measurement. See [Network
+profiles](#network-profiles), [Device and mission
+controls](#device-control-topics), and [Validation status](#validation-status)
+for the detailed operating boundaries.
+
 It provides:
 
 - HTTPS and SSH `.repos` manifests for the Kinesis tracking fork of Emesent's
@@ -96,7 +148,7 @@ TCP ports `49172-49191`. The configured upper bound, `49192`, is exclusive.
 The HTTP API is unencrypted and unauthenticated; use
 only an isolated, trusted Hovermap network.
 
-## Quick start
+## Detailed container setup
 
 Install Docker Engine on a Linux workstation and verify it is usable without
 `sudo`, then clone this repository:
@@ -146,7 +198,7 @@ successful ZeroMQ connection. The Kinesis launch also relays namespaced
 transforms to standard `/tf` and latched `/tf_static`. Set
 `relay_standard_tf:=false` only if another relay owns those topics.
 
-## Read-only smoke test
+## Live data check
 
 Start a Mapping mission from Commander or the Web UI, then run:
 
