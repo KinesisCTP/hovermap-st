@@ -36,6 +36,19 @@ from hovermap_ros2_api.ros1_wire import (
 
 @unittest.skipUnless(ROS_MESSAGES_AVAILABLE, "ROS 2 message packages are not installed")
 class Ros2ConversionTests(unittest.TestCase):
+    def test_mule_adapter_constructs_without_clobbering_rclpy_publishers(self):
+        from hovermap_ros2_api.mule_adapter import MuleAdapter
+
+        rclpy.init(args=["--ros-args", "-p", "initial_wait:=60.0"])
+        node = MuleAdapter()
+        try:
+            self.assertIsInstance(node._publishers, list)
+            self.assertIsInstance(node._wire_publishers, dict)
+        finally:
+            node.destroy_node()
+            if rclpy.ok():
+                rclpy.shutdown()
+
     def test_string_array_parameter_supports_sentinel_and_nonempty(self):
         from hovermap_ros2_api.mule_adapter import _normalized_unicast_addresses
 

@@ -116,6 +116,14 @@ ros2 launch hovermap_ros2_api hovermap_api.launch.py \
   ip_prefix:=10.9.0.0 hovermap_address:=10.9.0.1
 ```
 
+In a second Jazzy shell, open the preconfigured view:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+rviz2 -d "$(ros2 pkg prefix hovermap_ros2_api)/share/hovermap_ros2_api/rviz/hovermap.rviz"
+```
+
 The Mule core selects a network interface by `ip_prefix`; the interface itself
 must already have the required static address. Host networking must permit
 multicast UDP 8123 and TCP ports 49172-49191 (configured as the half-open range
@@ -217,17 +225,34 @@ PYTHONPATH=src/hovermap_ros2_api python3 -m unittest discover \
 On Jazzy, also run `colcon test` and inspect
 `colcon test-result --verbose`.
 
-## Hardware acceptance gate
+## Hardware validation status
 
-Do not claim parity until the following pass against an API-enabled Hovermap:
+Wi-Fi hardware validation passed on 2026-09-11 against KINESIS Hovermap
+`st_0200` using ROS 2 Jazzy in `ros:jazzy-ros-base-noble` with host networking:
 
-- Wi-Fi and Ethernet discovery, reconnect, and disconnect behavior;
-- approximately 20 Hz corrected lidar, 1 Hz occupancy, 100 Hz odometry, and
-  1 Hz status without queue drops;
-- exact frame IDs, transform topology, timestamps, covariances, PointFields,
+- Mule discovered and connected to `st_0200`; diagnostics reported zero peer
+  RTT failures, queue drops, and decode failures.
+- Corrected LiDAR ran at approximately 19.8 Hz, occupancy at 0.98 Hz, and
+  odometry at 99-100 Hz during a Mapping mission.
+- The corrected cloud used frame `odom` and PointFields `x`, `y`, `z`,
+  `intensity`, `label_confidence`, and `semantic_label`; sampled odometry used
+  frame `odom` and child frame `hovermap_base`.
+- A late `/tf_static` subscriber received the three expected transforms, ROS 2
+  start/stop commands controlled the mission, and RViz2 displayed the live
+  cloud and motion.
+- The two sampled odometry poses changed by approximately 0.19 m with a clear
+  orientation change while the unit was moved.
+
+The workstation clock was approximately 101 seconds behind the device
+timestamps. Synchronize the host clock before timestamp-sensitive navigation
+or measurement.
+
+Full hardware parity still requires the following:
+
+- Ethernet discovery, reconnect, and disconnect behavior;
+- exact transform topology, timestamps, covariances, PointFields,
   row steps, and point bytes compared with a ROS 1 bag oracle;
-- late-subscriber receipt of `/cortex/tf_static` and RViz2 visualization;
-- start/stop, prefix persistence, newest-first scan listing, valid ZIP download,
+- prefix persistence, newest-first scan listing, valid ZIP download,
   failure reporting, and concurrent-download rejection;
 - occupancy configuration round trip and persistence/reboot behavior;
 - rosbag2 record/replay, Nav2 PointCloud2 ingestion, and a 30-60 minute soak

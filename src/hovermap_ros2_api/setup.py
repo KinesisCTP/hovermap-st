@@ -14,6 +14,7 @@ setup(
         (f"share/{PACKAGE_NAME}", ["package.xml", "README.md"]),
         (f"share/{PACKAGE_NAME}/launch", glob("launch/*.launch.py")),
         (f"share/{PACKAGE_NAME}/config", glob("config/*.yaml")),
+        (f"share/{PACKAGE_NAME}/rviz", glob("rviz/*.rviz")),
     ],
     install_requires=["setuptools"],
     tests_require=["pytest"],

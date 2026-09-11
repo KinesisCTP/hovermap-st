@@ -1,7 +1,57 @@
 # Kinesis Hovermap ST — ROS 2 Jazzy
 
 This private `codex/ros2-jazzy` branch is the KINESIS native ROS 2 prototype
-for the Emesent Hovermap ST on Ubuntu 24.04 / ROS 2 Jazzy. It provides:
+for the Emesent Hovermap ST on Ubuntu 24.04 / ROS 2 Jazzy.
+
+## ROS 2 first steps (Wi-Fi)
+
+Before starting, power the Hovermap, enable **Publish external API messages**
+and **Use Wi-Fi for external API**, connect the workstation to its isolated
+Wi-Fi network, and configure that interface as `10.9.0.99/24`. Keep the
+Hovermap securely held or mounted before starting a Mapping mission.
+
+In terminal 1, from a ROS 2 Jazzy environment:
+
+```bash
+git clone --branch codex/ros2-jazzy \
+  https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ros2_ws
+cd ~/hovermap-st_ros2_ws
+source /opt/ros/jazzy/setup.bash
+vcs import . < hovermap_ros2_core_https.repos
+sudo apt-get update && sudo apt-get install -y python3-avro
+rosdep update --rosdistro jazzy
+rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
+  --ignore-src --rosdistro jazzy -y
+colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
+  --symlink-install
+source install/setup.bash
+source scripts/source_mule_core.sh
+ros2 launch hovermap_ros2_api hovermap_api.launch.py \
+  ip_prefix:=10.9.0.0 hovermap_address:=10.9.0.1
+```
+
+In terminal 2:
+
+```bash
+cd ~/hovermap-st_ros2_ws
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+rviz2 -d "$(ros2 pkg prefix hovermap_ros2_api)/share/hovermap_ros2_api/rviz/hovermap.rviz"
+
+# Only after securing the Hovermap:
+ros2 topic pub --once /cortex/start_scan std_msgs/msg/Empty '{}'
+# Move it slowly while viewing the live cloud, then stop before closing ROS:
+ros2 topic pub --once /cortex/stop_scan std_msgs/msg/Empty '{}'
+```
+
+Expected results are peer `st_0200`, a live corrected cloud near 20 Hz,
+occupancy near 1 Hz, odometry near 100 Hz, and motion visible in RViz2.
+Synchronize the host clock before timestamp-sensitive navigation or
+measurement. See [Device and network gate](#device-and-network-gate) and
+[Current validation status](#current-validation-status) for the operating
+boundaries.
+
+It provides:
 
 - `hovermap_ros2_msgs`, with ROS 2 Hovermap status, scan, Mule diagnostic, and
   overlay-service interfaces;
@@ -14,8 +64,10 @@ for the Emesent Hovermap ST on Ubuntu 24.04 / ROS 2 Jazzy. It provides:
 - offline codec, HTTP, queue, ordering, and configuration tests plus a Jazzy
   build and real-core compatibility smoke in CI.
 
-This is an engineering prototype, not a claim of hardware parity. Physical
-Hovermap acceptance remains mandatory before operational use.
+Physical Wi-Fi validation against KINESIS Hovermap `st_0200` passed on
+2026-09-11 for discovery, live native ROS 2 data, TF, RViz2, and start/stop
+control. Ethernet, downloads, perception configuration, rosbag2/Nav2, and
+long-duration parity testing remain open before operational release.
 
 ## Source and license boundary
 
@@ -48,7 +100,7 @@ so `rosdep` and `colcon` see only the two native ROS 2 packages. The container,
 audit, activation, and verification files remain as parity evidence and a
 reference for the `main` ROS 1 baseline.
 
-## Build and launch
+## Detailed build and launch
 
 Run from the repository root on Ubuntu 24.04 with ROS 2 Jazzy:
 
@@ -95,7 +147,7 @@ though `ip_prefix` selects the ZMQ/outbound interface. Scope both UDP and TCP
 with the host firewall to the isolated Hovermap interface/subnet. The HTTP and
 Mule protocols are unauthenticated; never expose them to an untrusted network.
 
-## Current validation boundary
+## Current validation status
 
 Offline tests validate wire-format round trips and malformed buffers, HTTP
 response/redirect/download safety, concurrency bounds, FIFO device-control
@@ -104,9 +156,18 @@ configuration parsing. Jazzy CI also
 builds the interfaces and nodes and constructs the real pinned Mule Client on
 loopback.
 
-Real hardware must still validate discovery/reconnect, rates and loss, message
-bytes and timestamps against the ROS 1 oracle, transform topology and late
-static subscribers, every control path, ZIP downloads, overlay behavior,
-perception persistence, rosbag2/Nav2 interoperability, and a sustained soak.
+The 2026-09-11 Wi-Fi test on `st_0200` validated peer discovery and TCP
+connection, ROS 2 start/stop control, RViz2 visualization, expected frames and
+six PointFields, late static-TF delivery, and live rates of approximately 19.8
+Hz corrected LiDAR, 0.98 Hz occupancy, and 99-100 Hz odometry. The bridge
+reported zero queue drops, zero decode failures, and zero peer RTT failures.
+The test used `ros:jazzy-ros-base-noble` with host networking on the Ubuntu
+24.04 workstation because the host ROS installation is Kilted.
+
+The workstation clock was approximately 101 seconds behind the Hovermap
+timestamps; clock synchronization remains required before timestamp-sensitive
+navigation or measurement. Ethernet discovery/reconnect, exact byte-for-byte
+ROS 1 bag comparison, prefix/list/download controls, overlays, perception
+persistence, rosbag2/Nav2 interoperability, and a sustained soak remain open.
 Perception configuration has no device acknowledgement and is never applied
 automatically.

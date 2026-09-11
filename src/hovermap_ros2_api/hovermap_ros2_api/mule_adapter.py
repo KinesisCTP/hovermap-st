@@ -203,7 +203,9 @@ class MuleAdapter(Node):
             durability=DurabilityPolicy.VOLATILE,
         )
 
-        self._publishers = {
+        # Do not use ``_publishers`` here: rclpy.Node owns that name and
+        # expects it to remain a list for publisher lifecycle tracking.
+        self._wire_publishers = {
             WIRE_LIDAR: [
                 self.create_publisher(
                     PointCloud2, self.get_parameter("lidar_topic").value, sensor_qos
@@ -358,7 +360,7 @@ class MuleAdapter(Node):
             else self.get_parameter("tf_static_topic").value
         )
         if output_topic != compatibility_topic:
-            self._publishers[wire_topic].append(
+            self._wire_publishers[wire_topic].append(
                 self.create_publisher(TFMessage, output_topic, qos)
             )
 
@@ -535,7 +537,7 @@ class MuleAdapter(Node):
     def _publish_wire_message(
         self, direction: str, topic_name: str, payload: bytes, bridged_size: int
     ) -> None:
-        publishers = self._publishers.get(topic_name)
+        publishers = self._wire_publishers.get(topic_name)
         if publishers is None:
             self.get_logger().warning(f"Ignoring unexpected Mule topic {topic_name!r}")
             return
