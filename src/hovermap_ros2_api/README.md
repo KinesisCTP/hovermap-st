@@ -3,9 +3,10 @@
 KINESIS-authored native ROS 2 Jazzy nodes for the Hovermap API. This package
 does not contain or relicense the Emesent/CSIRO Mule implementation.
 
-This package is marked `Proprietary` for private/internal evaluation pending an
-explicit licensing decision. Do not publish it until the conflicting upstream
-license metadata has been reconciled and KINESIS has selected a license.
+This KINESIS-authored package remains proprietary; no open-source license is
+granted. Public availability does not change those rights. See
+[`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md) for the terms that
+govern the imported Mule implementation.
 
 ## Architecture and runtime dependency
 
@@ -128,9 +129,8 @@ The Mule core selects a network interface by `ip_prefix`; the interface itself
 must already have the required static address. Host networking must permit
 multicast UDP 8123 and TCP ports 49172-49191 (configured as the half-open range
 `[49172, 49192)`). Keep the unauthenticated HTTP and Mule
-interfaces on the isolated Hovermap network. The Hovermap also requires the
-external API feature entitlement and the API publication switch enabled.
-`ip_prefix` selects the ZMQ bind and outbound multicast interface, but the
+interfaces on the isolated Hovermap network. `ip_prefix` selects the ZMQ bind
+and outbound multicast interface, but the
 upstream Beacon receive socket binds UDP 8123 on all host interfaces. Firewall
 UDP 8123 and the TCP range to the isolated Hovermap interface/subnet; do not
 treat `ip_prefix` as an exposure boundary.
@@ -199,8 +199,7 @@ slow subscriber back-pressuring the live sensor bridge. Set
 validate latency and queue-drop counters on the target network.
 
 The type and units of the undocumented `/files.time` field remain
-hardware-unconfirmed: neither the supplied MENA3D instructions nor the public
-guide specifies them. The client normalizes finite numbers, numeric strings,
+hardware-unconfirmed. The client normalizes finite numbers, numeric strings,
 and ISO-8601 strings. If it sees another non-empty scalar string, it emits a
 warning and preserves the device's stable order rather than inventing one.
 
@@ -227,10 +226,10 @@ On Jazzy, also run `colcon test` and inspect
 
 ## Hardware validation status
 
-Wi-Fi hardware validation passed on 2026-09-11 against KINESIS Hovermap
-`st_0200` using ROS 2 Jazzy in `ros:jazzy-ros-base-noble` with host networking:
+Wi-Fi hardware validation passed on 2026-09-11 against the KINESIS Hovermap
+using ROS 2 Jazzy in `ros:jazzy-ros-base-noble` with host networking:
 
-- Mule discovered and connected to `st_0200`; diagnostics reported zero peer
+- Mule discovered and connected to the device; diagnostics reported zero peer
   RTT failures, queue drops, and decode failures.
 - Corrected LiDAR ran at approximately 19.8 Hz, occupancy at 0.98 Hz, and
   odometry at 99-100 Hz during a Mapping mission.
