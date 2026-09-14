@@ -3,7 +3,7 @@
 ## Status
 
 - Target branch: `direct-api`
-- Product stage: approved discovery; implementation requires specification approval
+- Product stage: implementation and local automated acceptance complete; GitHub Actions and connected-device hardware acceptance pending
 - Intended users: KINESIS operators and locally running LLM applications
 
 ## Value proposition
@@ -129,6 +129,12 @@ when all timestamps are homogeneous finite numeric values, or when all are
 parseable ISO-8601 values. Mixed or unparseable formats preserve device order
 and produce a warning. Numeric values are never labelled as Unix time.
 
+For identical behavior on every supported Python version, ISO classification
+uses the extended calendar datetime form `YYYY-MM-DDTHH:MM:SS`, with an optional
+fraction and optional `Z`, `z`, or `±HH:MM` offset. An absent offset is treated as
+UTC. Other ISO-8601 forms, surrounding whitespace, and firmware-local text remain
+unparseable and therefore preserve device order.
+
 ### `download_scan`
 
 Input:
@@ -173,6 +179,10 @@ length checks when available, ZIP structure and CRC validation, a content-file
 flush before atomic replacement, and atomic publication. It does not promise
 power-loss durability for the containing-directory entry and does not validate
 the semantic contents of the scan archive.
+
+ZIP validation reads every entry, permits at most 100,000 entries, and limits
+the cumulative uncompressed bytes to `--max-download-bytes`. Directory entries
+must not claim data or a nonzero CRC.
 
 ## Startup configuration
 

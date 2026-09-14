@@ -1,6 +1,0 @@
-# Mirrored from the audited Emesent source commit for a persistent image build.
-avro==1.11.1
-catkin_pkg==1.0.0
-netifaces==0.10.9
-pyzmq==25.1.0
-tornado==5.1.1

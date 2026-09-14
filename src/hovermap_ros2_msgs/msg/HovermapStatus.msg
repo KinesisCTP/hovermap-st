@@ -1,4 +1,0 @@
-string scan_prefix
-string current_scan_name
-int64 free_space
-bool scan_running

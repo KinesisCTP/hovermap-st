@@ -1,175 +1,176 @@
-# KINESIS Hovermap ST — ROS 2 Jazzy
+# KINESIS Hovermap ST — direct API
 
-A native ROS 2 Jazzy workspace for KINESIS users operating the Hovermap ST on
-Ubuntu 24.04. For ROS 1 Noetic, use the [`main`](https://github.com/KinesisCTP/hovermap-st/tree/main)
-branch.
+This branch provides a small, headless MCP server for routine Hovermap ST
+operation. It talks directly to the device HTTP API and exposes six tools to a
+locally running LLM application over `stdio`. There is no UI and no ROS runtime
+is required. Here, `stdio` means the MCP client launches the server as a local
+subprocess and exchanges protocol messages through pipes; the server opens no
+MCP network port.
 
-## Quick start (Wi-Fi)
+Need a ROS integration instead? Use [`ros1-noetic`](https://github.com/KinesisCTP/hovermap-st/tree/ros1-noetic)
+or [`ros2-jazzy`](https://github.com/KinesisCTP/hovermap-st/tree/ros2-jazzy).
 
-Power the Hovermap, connect the Linux workstation to its isolated Wi-Fi
-network, and configure that interface as `10.9.0.99/24`. Keep the Hovermap
-securely held or mounted before starting a Mapping mission.
+## Quick start
 
-In terminal 1:
+Power the Hovermap, connect the Linux workstation to its isolated device
+network, and configure the matching client address from the table below. Check
+the connection before installing the server:
 
 ```bash
-git clone --branch ros2-jazzy \
-  https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ros2_ws
-cd ~/hovermap-st_ros2_ws
+git clone --branch direct-api https://github.com/KinesisCTP/hovermap-st.git
+cd hovermap-st
 ./scripts/preflight_network.sh wifi wlan0
 
-source /opt/ros/jazzy/setup.bash
-sudo apt-get update
-sudo apt-get install -y python3-avro ros-dev-tools
-vcs import . < hovermap_ros2_core_https.repos
-rosdep update --rosdistro jazzy
-rosdep install --from-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
-  --ignore-src --rosdistro jazzy -y
-colcon build --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api \
-  --symlink-install
-
-source install/setup.bash
-source scripts/source_mule_core.sh
-ros2 launch hovermap_ros2_api hovermap_api.launch.py \
-  ip_prefix:=10.9.0.0 hovermap_address:=10.9.0.1
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install .
 ```
 
-In terminal 2:
+Configure the MCP client to launch the installed executable. Use the absolute
+path to the virtual environment; the server is not an interactive shell
+command and normally starts and stops with the MCP client.
 
-```bash
-cd ~/hovermap-st_ros2_ws
-source /opt/ros/jazzy/setup.bash
-source install/setup.bash
-rviz2 -d "$(ros2 pkg prefix hovermap_ros2_api)/share/hovermap_ros2_api/rviz/hovermap.rviz"
+```json
+{
+  "mcpServers": {
+    "hovermap": {
+      "command": "/absolute/path/to/hovermap-st/.venv/bin/hovermap-mcp",
+      "args": ["--profile", "wifi"],
+      "env": {
+        "HOVERMAP_DOWNLOAD_DIRECTORY": "/absolute/path/to/hovermap_downloads"
+      }
+    }
+  }
+}
 ```
 
-In another sourced shell, start and stop a Mapping mission only after securing
-the Hovermap:
+Replace the paths and profile for the workstation in use. Once
+`kinesis-hovermap-mcp` is published to the Python package index configured for
+your MCP client, the equivalent ephemeral command is:
 
-```bash
-ros2 topic pub --once /cortex/start_scan std_msgs/msg/Empty '{}'
-# Move the Hovermap slowly while viewing the live cloud in RViz2.
-ros2 topic pub --once /cortex/stop_scan std_msgs/msg/Empty '{}'
+```json
+{
+  "command": "uvx",
+  "args": [
+    "--from",
+    "kinesis-hovermap-mcp",
+    "hovermap-mcp",
+    "--profile",
+    "wifi"
+  ]
+}
 ```
 
-Expect a Hovermap Mule peer, corrected LiDAR near 20 Hz, occupancy near 1 Hz,
-odometry near 100 Hz, and motion in RViz2. Synchronize the **host** clock to
-the Hovermap NTP server before timestamp-sensitive navigation or measurement.
+For an unpublished local checkout, `uvx` can use its absolute path in place of
+`kinesis-hovermap-mcp`.
 
 ## Network profiles
 
 Configure exactly one Hovermap-facing host interface:
 
-| Connection | Prefix | Hovermap | Client | Netmask |
-|---|---|---|---|---|
-| Wi-Fi | `10.9.0.0` | `10.9.0.1` | `10.9.0.99` | `255.255.255.0` |
-| ST Fischer Ethernet | `192.168.2.0` | `192.168.2.115` | `192.168.2.100` | `255.255.255.0` |
-| USB Ethernet | `192.168.3.0` | `192.168.3.115` | `192.168.3.100` | `255.255.255.0` |
+| Profile | Hovermap address | Workstation address | Netmask |
+| --- | --- | --- | --- |
+| `wifi` | `10.9.0.1` | `10.9.0.99` | `255.255.255.0` |
+| `fischer` | `192.168.2.115` | `192.168.2.100` | `255.255.255.0` |
+| `usb` | `192.168.3.115` | `192.168.3.100` | `255.255.255.0` |
 
-Keep **Use Wi-Fi for external API** enabled for Wi-Fi. Disable it for Fischer
-or USB Ethernet, then power-cycle the Hovermap. Run the matching preflight:
+Run the matching preflight, optionally naming the interface:
 
 ```bash
 ./scripts/preflight_network.sh wifi wlan0
-# or: ./scripts/preflight_network.sh fischer enp4s0
-# or: ./scripts/preflight_network.sh usb enx001122334455
+./scripts/preflight_network.sh fischer enp4s0
+./scripts/preflight_network.sh usb enx001122334455
 ```
 
-Launch with the table's Prefix and Hovermap values. For Wi-Fi:
+## Tools
 
-```bash
-ros2 launch hovermap_ros2_api hovermap_api.launch.py \
-  ip_prefix:=10.9.0.0 hovermap_address:=10.9.0.1
-```
+An MCP client discovers exactly these six tools:
 
-Mule uses UDP `8123`, multicast `225.0.0.250`, and TCP ports `49172-49191`;
-`49192` is the exclusive upper bound. The HTTP and Mule interfaces are
-unauthenticated, so keep them on an isolated, trusted Hovermap network.
+| Tool | Input | Result |
+| --- | --- | --- |
+| `get_status` | none | Prefix, current scan, free bytes, device state, and tri-state `scan_running` |
+| `set_scan_prefix` | `prefix` (1–20 ASCII letters or digits) | HTTP acknowledgement; the new state is not independently confirmed |
+| `start_scan` | none | Mapping-start HTTP acknowledgement; the state transition is not independently confirmed |
+| `stop_scan` | none | Stop HTTP acknowledgement; the state transition is not independently confirmed |
+| `list_scans` | none | Validated scan metadata and the ordering rule applied |
+| `download_scan` | `scan_name` | Absolute archive path, byte count, ZIP validation, and atomic-publication status |
 
-## Runtime details
+After a control call, use `get_status` when the project needs to observe the
+resulting device state. The server returns expected device, validation, and
+filesystem failures as structured tool errors for the calling LLM.
 
-In each new launch shell, source the environments in this order:
+## Startup configuration
 
-```bash
-source /opt/ros/jazzy/setup.bash
-source install/setup.bash
-source scripts/source_mule_core.sh
-```
+Command-line values override environment values, which override defaults.
 
-Downloads go to `~/hovermap_downloads`. If either API adapter exits, the launch
-shuts down instead of leaving a partial client running. Advanced parameters,
-QoS, topic types, and diagnostics are in
-[`src/hovermap_ros2_api/README.md`](src/hovermap_ros2_api/README.md).
+| CLI option | Environment variable | Default |
+| --- | --- | --- |
+| `--profile` | `HOVERMAP_PROFILE` | `wifi` |
+| `--hovermap-url` | `HOVERMAP_URL` | Selected profile address |
+| `--download-directory` | `HOVERMAP_DOWNLOAD_DIRECTORY` | `~/hovermap_downloads` |
+| `--request-timeout-seconds` | `HOVERMAP_REQUEST_TIMEOUT_SECONDS` | `5` |
+| `--download-timeout-seconds` | `HOVERMAP_DOWNLOAD_TIMEOUT_SECONDS` | `450` |
+| `--max-json-bytes` | `HOVERMAP_MAX_JSON_BYTES` | `4194304` |
+| `--max-download-bytes` | `HOVERMAP_MAX_DOWNLOAD_BYTES` | `137438953472` |
+| `--log-level` | `HOVERMAP_LOG_LEVEL` | `INFO` |
 
-This branch has no ROS 2 container helper; `containers/ros1_noetic` belongs to
-the ROS 1 workflow.
+Profiles are `wifi`, `fischer`, and `usb`; log levels are `DEBUG`, `INFO`,
+`WARNING`, and `ERROR`. `--hovermap-url` is for a deliberate origin-only
+HTTP(S) override. See [`SPEC.md`](SPEC.md) for the exact bounds and result
+schemas.
 
-## Live data check
+## Operational boundaries
 
-During a Mapping mission, run these individually or in separate terminals:
-
-```bash
-ros2 topic echo --once /cortex/mule_bridge/status
-ros2 topic hz /cortex/lidar/corrected
-ros2 topic hz /cortex/occupancy_grid_map/data
-ros2 topic hz /cortex/odometry
-rviz2 -d "$(ros2 pkg prefix hovermap_ros2_api)/share/hovermap_ros2_api/rviz/hovermap.rviz"
-```
-
-Check the actual point fields, frame IDs, transform tree, diagnostics, and
-clock offset before using the data for navigation or measurement.
-
-## Device-control topics
-
-Run state-changing commands only after the read-only checks are healthy:
-
-```bash
-ros2 topic pub --once /cortex/set_scan_prefix \
-  std_msgs/msg/String "{data: 'Kinesis'}"
-ros2 topic pub --once /cortex/start_scan std_msgs/msg/Empty '{}'
-ros2 topic pub --once /cortex/stop_scan std_msgs/msg/Empty '{}'
-```
-
-Scan-list and download responses are volatile. Start the matching `ros2 topic
-echo --once` listener in another shell before publishing each request:
-
-```bash
-# List scans.
-ros2 topic echo --once /cortex/scan_names_response
-ros2 topic pub --once /cortex/scan_names_request std_msgs/msg/Empty '{}'
-
-# Download an exact returned scan name.
-ros2 topic echo --once /cortex/scan_download_successful
-ros2 topic pub --once /cortex/download_scan \
-  std_msgs/msg/String "{data: 'Kinesis_01'}"
-```
-
-Avoid `configure_perception` unless deliberately changing persistent settings;
-the device does not acknowledge configuration changes.
+- Keep the unauthenticated device interface on its isolated, trusted network.
+- Securely hold or mount the Hovermap before allowing an LLM to start a scan.
+- The server itself adds no project-specific confirmation step; the MCP client
+  and project prompt determine when the tools may be called.
+- Mutating calls run in order, and only one download may be queued or running.
+- Downloads stay within the configured root, are never extracted, are streamed
+  through a `.part` file, ZIP-checked, and atomically published.
+- Do not expose this v1 `stdio` server as a network service.
 
 ## Contributor setup
 
-Contributors can clone through SSH and then follow the setup above:
+Use Python 3.10 or newer. Python 3.12 on Ubuntu 24.04 is the primary target.
+
+With `uv` 0.12.13 installed outside the project environment:
 
 ```bash
-git clone --branch ros2-jazzy \
-  git@github.com:KinesisCTP/hovermap-st.git ~/hovermap-st_ros2_ws
+uv lock --check
+uv sync --locked --extra dev --python python3
+
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked pytest
+uv run --locked python -m build --no-isolation
+uv run --locked python scripts/check_stdio_contract.py
 ```
 
-Run the pure-Python tests and, in a built and sourced workspace, `colcon test`
-plus `colcon test-result --verbose` before contributing:
+The committed `uv.lock` fixes the reviewed development and CI resolution. CI
+runs the test suite on Python 3.10, 3.12, and 3.14, then installs the built wheel
+and its locked dependencies into a clean environment and verifies the real MCP
+contract over `stdio`.
 
-```bash
-PYTHONPATH=src/hovermap_ros2_api python3 -m unittest discover \
-  -s src/hovermap_ros2_api/test -v
-colcon test --base-paths src/hovermap_ros2_msgs src/hovermap_ros2_api
-colcon test-result --verbose
-```
+Never commit downloaded scans, `.part` files, credentials, or machine-specific
+configuration.
 
-Keep the Mule dependency pinned through `hovermap_ros2_core_https.repos` and
-never commit scans, `.env` files, device-specific files, or credentials.
+## Hardware acceptance
 
-KINESIS-authored code remains proprietary; no open-source license is granted.
-Public availability does not change those rights. Third-party software remains
-governed by its own licenses; see
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+Automated tests do not replace the device check. Before promoting this branch
+as the default, test from a clean, ROS-free Python environment on an isolated
+Hovermap network:
+
+1. Confirm that the client discovers only the six documented tools.
+2. Run status, prefix, start, stop, list, and download calls against the device.
+3. Observe requested state changes separately with `get_status`.
+4. Confirm the downloaded archive name and byte count, valid ZIP, atomic final
+   file, and absence of a leftover `.part` file.
+5. Confirm the process opens no unrelated discovery or transport ports.
+
+Hardware acceptance is pending until those steps are recorded against a
+connected Hovermap.
+
+KINESIS-authored code is proprietary; public availability does not grant an
+open-source license. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

@@ -1,5 +1,0 @@
-repositories:
-  third_party/hovermap_ros_api:
-    type: git
-    url: https://github.com/KinesisCTP/hovermap_ros_api.git
-    version: 1608fb74784977b69936590b9cda8340a1fe3013

@@ -1,9 +1,0 @@
-string swarm_name
-uint8[] node_uuid
-string node_name
-PeerStatus[] peers
-TopicStatus[] topics
-Manifest manifest
-builtin_interfaces/Time manifest_time
-uint64 dropped_event_count
-uint64 decode_failure_count

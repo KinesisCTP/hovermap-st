@@ -1,33 +1,26 @@
-build/
-devel/
-install/
-log/
-.catkin_tools/
-.colcon/
-.cache/
-.env
-# Imported dependency worktrees are recreated from the .repos manifests.
-src/*
-!src/hovermap_ros2_api/
-!src/hovermap_ros2_api/**
-!src/hovermap_ros2_msgs/
-!src/hovermap_ros2_msgs/**
-third_party/*
-!third_party/COLCON_IGNORE
-
-# Keep generated Python and local test artifacts ignored after re-including packages.
-*.pyc
+# Python environments and generated artifacts
+.venv/
+venv/
 __pycache__/
+*.py[cod]
+*.egg-info/
 .pytest_cache/
-.test-run/
-.test-tmp/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
 
-# Device-bound entitlements and downloaded mission data never belong in Git.
-*.img
-features-*
+# Local configuration and editor state
+.env
+.idea/
+.vscode/
+
+# Device downloads never belong in Git
 downloads/
 hovermap_downloads/
 *.zip
 *.zip.part
+*.part
 *.bag
 *.db
