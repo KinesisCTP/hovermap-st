@@ -15,8 +15,8 @@ import zipfile
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib.metadata import distribution, requires, version
 from importlib.metadata import files as distribution_files
-from importlib.metadata import requires, version
 from pathlib import Path
 from typing import Any, ClassVar
 from urllib.parse import parse_qs, urlsplit
@@ -349,12 +349,26 @@ def _check_result(tool: Any, result: Any, *, is_error: bool = False) -> dict[str
     return structured
 
 
-def _check_installed_wheel(checkout_root: Path) -> None:
+def _check_installed_wheel() -> None:
+    installed_distribution = distribution("kinesis-hovermap-mcp")
+    recorded_files = tuple(installed_distribution.files or ())
     for module in (hovermap_direct, hovermap_mcp):
         module_path = Path(module.__file__).resolve()
-        with suppress(ValueError):
-            module_path.relative_to(checkout_root)
-            raise AssertionError(f"{module.__name__} imported from the checkout, not the wheel")
+        recorded_init = next(
+            (
+                path
+                for path in recorded_files
+                if Path(str(path)) == Path(module.__name__) / "__init__.py"
+            ),
+            None,
+        )
+        if recorded_init is None:
+            raise AssertionError(f"{module.__name__} is not recorded in the installed wheel")
+        recorded_path = Path(installed_distribution.locate_file(recorded_init)).resolve()
+        if module_path != recorded_path:
+            raise AssertionError(
+                f"{module.__name__} imported from {module_path}, not the wheel path {recorded_path}"
+            )
 
     active_dependencies: set[str] = set()
     for raw_requirement in requires("kinesis-hovermap-mcp") or []:
@@ -497,9 +511,8 @@ async def _check_raw_initialized_session(command: str, server_args: list[str]) -
 
 
 async def check(command: str, *, require_installed_wheel: bool) -> None:
-    checkout_root = Path(__file__).resolve().parents[1]
     if require_installed_wheel:
-        _check_installed_wheel(checkout_root)
+        _check_installed_wheel()
 
     with tempfile.TemporaryDirectory(prefix="hovermap-mcp-contract-") as temporary:
         download_directory = Path(temporary) / "downloads"
