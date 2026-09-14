@@ -1,9 +1,11 @@
 # KINESIS Hovermap ST — ROS 1 Noetic
 
 A containerized ROS 1 Noetic workspace for KINESIS users operating the
-Hovermap ST. The native ROS 2 Jazzy version is available on the
-[`ros2-jazzy`](https://github.com/KinesisCTP/hovermap-st/tree/ros2-jazzy)
-branch.
+Hovermap ST. This version lives on the
+[`ros1-noetic`](https://github.com/KinesisCTP/hovermap-st/tree/ros1-noetic)
+branch. For other interfaces, use
+[`ros2-jazzy`](https://github.com/KinesisCTP/hovermap-st/tree/ros2-jazzy) or
+[`direct-api`](https://github.com/KinesisCTP/hovermap-st/tree/direct-api).
 
 ## Quick start (Wi-Fi)
 
@@ -14,7 +16,7 @@ securely held or mounted before starting a Mapping mission.
 In terminal 1:
 
 ```bash
-git clone https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ws
+git clone --branch ros1-noetic https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ws
 cd ~/hovermap-st_ws
 ./scripts/preflight_network.sh wifi wlan0
 ./containers/ros1_noetic/run.sh
@@ -90,7 +92,7 @@ Install Docker Engine on a Linux workstation and verify it is usable without
 `sudo`, then clone and start the workspace:
 
 ```bash
-git clone https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ws
+git clone --branch ros1-noetic https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ws
 cd ~/hovermap-st_ws
 ./containers/ros1_noetic/run.sh
 ```

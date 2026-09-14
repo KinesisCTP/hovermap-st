@@ -2,9 +2,9 @@ name: ROS 1 Noetic
 
 on:
   push:
-    branches: [main]
+    branches: [ros1-noetic]
   pull_request:
-    branches: [main]
+    branches: [ros1-noetic]
 
 permissions:
   contents: read
