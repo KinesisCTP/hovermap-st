@@ -1,8 +1,11 @@
 # KINESIS Hovermap ST — ROS 2 Jazzy
 
 A native ROS 2 Jazzy workspace for KINESIS users operating the Hovermap ST on
-Ubuntu 24.04. For ROS 1 Noetic, use the [`main`](https://github.com/KinesisCTP/hovermap-st/tree/main)
-branch.
+Ubuntu 24.04. This version lives on the
+[`ros2-jazzy`](https://github.com/KinesisCTP/hovermap-st/tree/ros2-jazzy)
+branch. For other interfaces, use
+[`ros1-noetic`](https://github.com/KinesisCTP/hovermap-st/tree/ros1-noetic) or
+[`direct-api`](https://github.com/KinesisCTP/hovermap-st/tree/direct-api).
 
 ## Quick start (Wi-Fi)
 
