@@ -2,7 +2,7 @@
 
 A containerized ROS 1 Noetic workspace for KINESIS users operating the
 Hovermap ST. The native ROS 2 Jazzy version is available on the
-[`codex/ros2-jazzy`](https://github.com/KinesisCTP/hovermap-st/tree/codex/ros2-jazzy)
+[`ros2-jazzy`](https://github.com/KinesisCTP/hovermap-st/tree/ros2-jazzy)
 branch.
 
 ## Quick start (Wi-Fi)
