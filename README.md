@@ -13,7 +13,7 @@ securely held or mounted before starting a Mapping mission.
 In terminal 1:
 
 ```bash
-git clone --branch codex/ros2-jazzy \
+git clone --branch ros2-jazzy \
   https://github.com/KinesisCTP/hovermap-st.git ~/hovermap-st_ros2_ws
 cd ~/hovermap-st_ros2_ws
 ./scripts/preflight_network.sh wifi wlan0
@@ -152,7 +152,7 @@ the device does not acknowledge configuration changes.
 Contributors can clone through SSH and then follow the setup above:
 
 ```bash
-git clone --branch codex/ros2-jazzy \
+git clone --branch ros2-jazzy \
   git@github.com:KinesisCTP/hovermap-st.git ~/hovermap-st_ros2_ws
 ```
 
