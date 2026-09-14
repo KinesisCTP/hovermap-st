@@ -3,7 +3,7 @@
 ## Status
 
 - Target branch: `direct-api`
-- Product stage: implementation and local automated acceptance complete; GitHub Actions and connected-device hardware acceptance pending
+- Product stage: implementation and automated acceptance complete; connected-device hardware acceptance pending
 - Intended users: KINESIS operators and locally running LLM applications
 
 ## Value proposition
