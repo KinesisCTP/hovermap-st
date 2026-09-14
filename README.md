@@ -158,9 +158,9 @@ configuration.
 
 ## Hardware acceptance
 
-Automated tests do not replace the device check. Before promoting this branch
-as the default, test from a clean, ROS-free Python environment on an isolated
-Hovermap network:
+Automated tests do not replace the device check. Although this is the default
+branch, complete the following from a clean, ROS-free Python environment on an
+isolated Hovermap network before relying on it for production device control:
 
 1. Confirm that the client discovers only the six documented tools.
 2. Run status, prefix, start, stop, list, and download calls against the device.

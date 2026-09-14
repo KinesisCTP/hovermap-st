@@ -2,7 +2,7 @@
 
 ## Status
 
-- Target branch: `direct-api`
+- Default branch: `direct-api`
 - Product stage: implementation and automated acceptance complete; connected-device hardware acceptance pending
 - Intended users: KINESIS operators and locally running LLM applications
 
@@ -338,5 +338,5 @@ Hardware acceptance on an isolated Hovermap network must then verify:
    validation, and leaves no `.part` file after success.
 6. The process opens no Mule discovery or transport ports.
 
-The branch remains non-default until its README, package build, CI, and hardware
-acceptance are complete.
+Default-branch status does not constitute connected-device validation. Hardware
+acceptance remains required before treating the implementation as field-validated.
